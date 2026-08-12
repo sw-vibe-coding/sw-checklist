@@ -48,12 +48,12 @@ fn is_binary_crate(cargo_toml: &str, crate_dir: &Path) -> bool {
     }
     // Has src/bin/ directory with .rs files
     let bin_dir = crate_dir.join("src/bin");
-    if bin_dir.is_dir() {
-        if let Ok(entries) = std::fs::read_dir(&bin_dir) {
-            for entry in entries.flatten() {
-                if entry.path().extension().is_some_and(|e| e == "rs") {
-                    return true;
-                }
+    if bin_dir.is_dir()
+        && let Ok(entries) = std::fs::read_dir(&bin_dir)
+    {
+        for entry in entries.flatten() {
+            if entry.path().extension().is_some_and(|e| e == "rs") {
+                return true;
             }
         }
     }

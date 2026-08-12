@@ -121,7 +121,24 @@ pub unsafe fn function_name()
 // Const functions
 const fn function_name()
 pub const fn function_name()
+
+// Restricted visibility (all forms)
+pub(crate) fn function_name()
+pub(super) fn function_name()
+pub(in path::to::module) fn function_name()
+
+// Qualifiers in any order, with or without visibility
+pub(crate) async fn function_name()
+pub(super) const unsafe fn function_name()
+pub extern "C" fn function_name()
 ```
+
+**Visibility never exempts a function.** The limits are about readability, and
+a 50-line `pub(crate)` function is exactly as hard to read as a 50-line private
+one. Restricted-visibility forms were invisible to the detector before this was
+fixed, which perversely rewarded inlining a small private helper into one large
+`pub(crate)` function. If a function must exceed the limit, justify it in a code
+comment — do not reach for a visibility modifier.
 
 **Does NOT detect** (intentionally):
 - Trait method declarations (no body)
@@ -194,6 +211,7 @@ if function_count > 7 {
 **Included**:
 - Public functions (`pub fn`)
 - Private functions (`fn`)
+- Crate/module-restricted functions (`pub(crate) fn`, `pub(super) fn`, `pub(in path) fn`)
 - Test functions (`#[test]`)
 - Associated functions (`impl MyStruct { fn ... }`)
 - Trait implementations

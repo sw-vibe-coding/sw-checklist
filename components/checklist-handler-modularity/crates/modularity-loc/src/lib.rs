@@ -6,3 +6,4 @@ mod parse;
 
 pub use file_loc::check_file_locs;
 pub use function_loc::check_function_locs;
+pub use parse::{find_functions, is_fn_def};

@@ -20,22 +20,37 @@ pub fn find_functions(content: &str) -> Vec<(String, usize)> {
     results
 }
 
-fn is_fn_def(line: &str) -> bool {
-    // `fn`, `pub fn`, `pub(crate) fn`, `pub(super) fn`, `pub(in ...) fn`,
-    // each with or without `async`, `const` or `unsafe` before `fn`.
-    let rest = match line.strip_prefix("pub") {
-        Some(r) if r.starts_with('(') => r.split_once(')').map_or("", |(_, t)| t),
-        Some(r) => r,
-        None => line,
+/// Keywords allowed between the visibility modifier and `fn`
+const FN_MODIFIERS: [&str; 4] = ["const", "async", "unsafe", "extern"];
+
+/// True if a trimmed source line starts a function definition.
+///
+/// Recognizes every visibility form (`fn`, `pub fn`, `pub(crate) fn`,
+/// `pub(super) fn`, `pub(in path) fn`) and any order of the
+/// `const`/`async`/`unsafe`/`extern "ABI"` qualifiers. Visibility must not
+/// affect whether a function is measured: a 50-line `pub(crate)` function is
+/// exactly as unreadable as a 50-line private one.
+pub fn is_fn_def(line: &str) -> bool {
+    let rest = match line.trim_start().strip_prefix("pub") {
+        // Restricted visibility: skip the whole `(crate)`/`(super)`/`(in path)` group
+        Some(after) if after.starts_with('(') => match after.split_once(')') {
+            Some((_, tail)) => tail,
+            None => return false,
+        },
+        Some(after) => after,
+        None => line.trim_start(),
     };
-    let mut words = rest.split_whitespace();
-    loop {
-        match words.next() {
-            Some("fn") => return true,
-            Some("async" | "const" | "unsafe") => continue,
-            _ => return false,
+
+    for word in rest.split_whitespace() {
+        if word == "fn" {
+            return true;
+        }
+        // `extern "C"` contributes an ABI string between the keyword and `fn`
+        if !FN_MODIFIERS.contains(&word) && !word.starts_with('"') {
+            return false;
         }
     }
+    false
 }
 
 fn extract_fn_name(line: &str) -> String {

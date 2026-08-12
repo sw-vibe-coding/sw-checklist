@@ -2,6 +2,7 @@
 
 use anyhow::Result;
 use checklist_result::CheckResult;
+use modularity_loc::is_fn_def;
 use std::fs;
 use std::path::Path;
 use walkdir::WalkDir;
@@ -62,14 +63,10 @@ fn walk_rs_files(dir: &Path) -> impl Iterator<Item = walkdir::DirEntry> {
 }
 
 fn count_functions(content: &str) -> usize {
+    // Shares one detector with the function-LOC check so the two cannot
+    // disagree about what counts as a function.
     content
         .lines()
-        .filter(|line| {
-            let t = line.trim();
-            t.starts_with("fn ")
-                || t.starts_with("pub fn ")
-                || t.starts_with("async fn ")
-                || t.starts_with("pub async fn ")
-        })
+        .filter(|line| is_fn_def(line.trim()))
         .count()
 }
