@@ -37,21 +37,28 @@ CLI tool for validating Software Wrighter LLC project conformance requirements.
 
 ### From Source
 
+The repository is organized as independent component workspaces under
+`components/`; there is no root `Cargo.toml`. Build everything in dependency
+order with the provided script:
+
 ```bash
 git clone https://github.com/softwarewrighter/sw-checklist.git
 cd sw-checklist
-cargo build --release
+./scripts/build-all.sh
 ```
 
-The binary will be at `target/release/sw-checklist`.
+The binary will be at `components/checklist-cli/target/release/sw-checklist`.
+You can also run it without installing via `./scripts/run.sh <args>`.
 
 ### Using sw-install
 
-If you have `sw-install` from the Software Wrighter toolchain:
+If you have `sw-install` from the Software Wrighter toolchain, install from the
+CLI component directory (the one that owns the binary's `Cargo.toml`):
 
 ```bash
 cd /path/to/sw-checklist
-cargo build --release
+./scripts/build-all.sh
+cd components/checklist-cli
 sw-install -p .
 ```
 
