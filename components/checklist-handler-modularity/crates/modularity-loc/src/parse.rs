@@ -21,10 +21,21 @@ pub fn find_functions(content: &str) -> Vec<(String, usize)> {
 }
 
 fn is_fn_def(line: &str) -> bool {
-    line.starts_with("fn ")
-        || line.starts_with("pub fn ")
-        || line.starts_with("async fn ")
-        || line.starts_with("pub async fn ")
+    // `fn`, `pub fn`, `pub(crate) fn`, `pub(super) fn`, `pub(in ...) fn`,
+    // each with or without `async`, `const` or `unsafe` before `fn`.
+    let rest = match line.strip_prefix("pub") {
+        Some(r) if r.starts_with('(') => r.split_once(')').map_or("", |(_, t)| t),
+        Some(r) => r,
+        None => line,
+    };
+    let mut words = rest.split_whitespace();
+    loop {
+        match words.next() {
+            Some("fn") => return true,
+            Some("async" | "const" | "unsafe") => continue,
+            _ => return false,
+        }
+    }
 }
 
 fn extract_fn_name(line: &str) -> String {
